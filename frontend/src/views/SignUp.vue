@@ -92,7 +92,7 @@ export default defineComponent({
                 position: 'bottom-right',
               })
 
-              this.$router.push('/game-wave')
+              this.$router.push('/')
             })
             .catch(error => {
               if (error.response) {

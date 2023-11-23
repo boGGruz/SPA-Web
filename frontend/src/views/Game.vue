@@ -13,7 +13,8 @@
 </template>
 
 <script lang="ts">
-export default {
+import {defineComponent} from 'vue'
+export default defineComponent({
   data() {
     return {
       dinoBottom: 0 as number,
@@ -179,8 +180,7 @@ export default {
     setInterval(this.gameLoop, 15)
     this.animateCharacter();
     this.parallaxAnimation();
-  },
-};
+  },})
 </script>
 
 <style scoped>
