@@ -15,7 +15,7 @@ const routes: Array<RouteRecordRaw> = [
         component: LogIn
     },
     {
-        path: '/game-wave',
+        path: '/samurai-way',
         name: 'Game',
         component: Game
     },

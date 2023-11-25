@@ -1,19 +1,20 @@
 <template>
-    <div class="main" :class="{ 'night-mode': isNightMode }" @keydown="handleKeyDown" tabindex="0"
-         :style="{ backgroundPosition: `${parallaxOffsetLayer5}px 0, ${parallaxOffsetLayer3}px 0, ${parallaxOffsetLayer4}px 0, ${parallaxOffsetLayer2}px 0, 0 0` }">
-      <h1 class="score">Очки: {{ score }}</h1>
-      <div class="game-area">
-        <div class="character"
-             :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${characterFrames[frameIndex]})` }"></div>
-        <div v-for="(obstacle, index) in obstacles" :key="index" class="obstacle"
-             :style="{ bottom: `${obstacle.bottom}px`, left: `${obstacle.left}px`, backgroundImage: 'url(src/assets/spike_1.png)' }"></div>
-        <div class="ground"></div>
-      </div>
+  <div class="main" :class="{ 'night-mode': isNightMode }" @keydown="handleKeyDown" tabindex="0"
+       :style="{ backgroundPosition: `${parallaxOffsetLayer5}px 0, ${parallaxOffsetLayer3}px 0, ${parallaxOffsetLayer4}px 0, ${parallaxOffsetLayer2}px 0, 0 0` }">
+    <h1 class="score">Очки: {{ score }}</h1>
+    <div class="game-area">
+      <div class="character"
+           :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${characterFrames[frameIndex]})` }"></div>
+      <div v-for="(obstacle, index) in obstacles" :key="index" class="obstacle"
+           :style="{ bottom: `${obstacle.bottom}px`, left: `${obstacle.left}px`, backgroundImage: `url(${require('@/assets/spike_1.png')})` }"></div>
+      <div class="ground"></div>
     </div>
+  </div>
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue'
+
 export default defineComponent({
   data() {
     return {
@@ -24,14 +25,14 @@ export default defineComponent({
       obstacles: [] as { bottom: number; left: number }[],
       coef: 1 as number,
       characterFrames: [
-        'frontend/src/assets/run_1.png',
-        'src/assets/run_2.png',
-        'src/assets/run_3.png',
-        'src/assets/run_4.png',
-        'src/assets/run_5.png',
-        'src/assets/run_6.png',
-        'src/assets/run_7.png',
-        'src/assets/run_8.png',
+        require('@/assets/run_1.png'),
+        require('@/assets/run_2.png'),
+        require('@/assets/run_3.png'),
+        require('@/assets/run_4.png'),
+        require('@/assets/run_5.png'),
+        require('@/assets/run_6.png'),
+        require('@/assets/run_7.png'),
+        require('@/assets/run_8.png'),
       ],
       frameIndex: 0 as number,
       parallaxOffsetLayer5: 0 as number,
@@ -127,7 +128,7 @@ export default defineComponent({
       this.checkCollisions();
     },
     checkNightMode() {
-      if (this.score >= 10 && !this.isNightMode) {
+      if (this.score >= 50 && this.score < 100 && !this.isNightMode) {
         this.isNightMode = true;
         this.$el.classList.add('night-mode');
       }
@@ -180,7 +181,8 @@ export default defineComponent({
     setInterval(this.gameLoop, 15)
     this.animateCharacter();
     this.parallaxAnimation();
-  },})
+  },
+})
 </script>
 
 <style scoped>
@@ -233,6 +235,10 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   color: white;
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+
 }
 
 .character {

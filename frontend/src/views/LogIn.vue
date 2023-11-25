@@ -70,7 +70,7 @@ export default defineComponent({
 
             localStorage.setItem("token", token)
 
-            const toPath = this.$route.query.to || '/game-wave'
+            const toPath = this.$route.query.to || '/samurai-way'
 
             this.$router.push(toPath as string)
           })
