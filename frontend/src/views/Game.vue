@@ -1,19 +1,26 @@
 <template>
-  <div class="main" :class="{ 'night-mode': isNightMode }" @keydown="handleKeyDown" tabindex="0"
+  <div class="main" :class="{ 'night-mode': isNightMode, 'sakura': isSakura }" @keydown="handleKeyDown" tabindex="0"
        :style="{ backgroundPosition: `${parallaxOffsetLayer5}px 0, ${parallaxOffsetLayer3}px 0, ${parallaxOffsetLayer4}px 0, ${parallaxOffsetLayer2}px 0, 0 0` }">
+    <audio id="backgroundMusic" loop>
+      <source src="@/assets/soundtrack.mp3" type="audio/mp3">
+      Your browser does not support the audio tag.
+    </audio>
+
     <h1 class="score">Очки: {{ score }}</h1>
     <div class="game-area">
       <div class="character"
-           :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${characterFrames[frameIndex]})` }"></div>
+           :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${characterFrames[frameIndex]})` }">
+      </div>
       <div v-for="(obstacle, index) in obstacles" :key="index" class="obstacle"
            :style="{ bottom: `${obstacle.bottom}px`, left: `${obstacle.left}px`, backgroundImage: `url(${require('@/assets/spike_1.png')})` }"></div>
-      <div class="ground"></div>
+      <div class="ground" :style="{ backgroundPosition: `${parallaxOffsetGround}px 0` }"></div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue'
+
 
 export default defineComponent({
   data() {
@@ -35,6 +42,8 @@ export default defineComponent({
         require('@/assets/run_8.png'),
       ],
       frameIndex: 0 as number,
+      parallaxOffsetGround: 0 as number,
+      parallaxOffsetLayer6: 0 as number,
       parallaxOffsetLayer5: 0 as number,
       parallaxOffsetLayer4: 0 as number,
       parallaxOffsetLayer3: 0 as number,
@@ -43,10 +52,17 @@ export default defineComponent({
       parallaxLayer3Speed: 1 as number,
       parallaxLayer4Speed: 0.35 as number,
       parallaxLayer5Speed: 0.5 as number,
+      parallaxLayer6Speed: 0.5 as number,
       isNightMode: false as boolean,
+      isSakura: false as boolean,
     };
   },
   methods: {
+    playBackgroundMusic() {
+      const backgroundMusic = document.getElementById('backgroundMusic') as HTMLAudioElement;
+      backgroundMusic.play();
+      backgroundMusic.volume = 0.5;
+    },
     animateCharacter() {
       setInterval(() => {
         this.frameIndex = (this.frameIndex + 1) % this.characterFrames.length;
@@ -89,6 +105,7 @@ export default defineComponent({
           this.obstacles.splice(i, 1);
           this.score++;
           this.checkNightMode();
+          this.checkSakura();
         }
       }
     },
@@ -117,6 +134,7 @@ export default defineComponent({
         }
       }
     },
+
     resetGame() {
       this.obstacles = [];
       this.score = 0;
@@ -127,10 +145,20 @@ export default defineComponent({
       this.moveObstacles();
       this.checkCollisions();
     },
+
+    checkSakura() {
+      if (this.score >= 25 && this.score < 50 && !this.isSakura) {
+        this.isSakura = true;
+      } else if (this.score >= 50) {
+        this.isSakura = false;
+      }
+    },
+
     checkNightMode() {
       if (this.score >= 50 && this.score < 100 && !this.isNightMode) {
         this.isNightMode = true;
-        this.$el.classList.add('night-mode');
+      } else if (this.score > 100) {
+        this.isNightMode = false;
       }
     },
     parallaxAnimation() {
@@ -139,6 +167,7 @@ export default defineComponent({
         this.parallaxOffsetLayer4 += this.parallaxLayer4Speed;
         this.parallaxOffsetLayer2 += this.parallaxLayer2Speed;
         this.parallaxOffsetLayer5 -= this.parallaxLayer5Speed;
+        this.parallaxOffsetGround -= 5 * this.coef;
         const containerWidth = 1280;
         if (this.parallaxOffsetLayer3 <= -containerWidth) {
           this.parallaxOffsetLayer3 = 0;
@@ -148,19 +177,20 @@ export default defineComponent({
           this.parallaxOffsetLayer4 = 0;
         }
 
-        if (this.parallaxOffsetLayer4 <= -containerWidth) {
-          this.parallaxOffsetLayer4 = 0;
-        }
-
         if (this.parallaxOffsetLayer5 <= -containerWidth) {
           this.parallaxOffsetLayer5 = 0;
+        }
+
+        if (this.parallaxOffsetGround <= -containerWidth) {
+          this.parallaxOffsetGround = 0;
         }
       }, 20);
     },
   },
-  mounted() {
-    this.$el.focus();
 
+  mounted() {
+    this.playBackgroundMusic();
+    this.$el.focus();
     const addObstacle = () => {
       this.obstacles.push({
         bottom: 0,
@@ -171,11 +201,7 @@ export default defineComponent({
       this.parallaxLayer2Speed += 0.01
       this.parallaxLayer4Speed += 0.01
       this.parallaxLayer5Speed += 0.01
-      if (this.score < 50) {
-        setTimeout(addObstacle, (500 + Math.random() * 2000) + 0.05);
-      } else if (this.score >= 50) {
-        setTimeout(addObstacle, (450 + Math.random() * 1800) + 0.05);
-      }
+      setTimeout(addObstacle, (500 + Math.random() * 2000) + 0.05);
     };
     addObstacle();
     setInterval(this.gameLoop, 15)
@@ -201,12 +227,17 @@ export default defineComponent({
   background-image: url('../assets/Layer_5.png'), url('../assets/Layer_3.png'), url('../assets/Layer_4.png'), url('../assets/Layer_2.png'), url('../assets/Layer_1.png');
   background-repeat: repeat;
   background-size: cover;
-  transition: background-image 4s ease;
+  transition: background-image 2s ease;
 }
 
 .main.night-mode {
   background-image: url('../assets/Layer_5_night.png'), url('../assets/Layer_3_night.png'), url('../assets/Layer_4_night.png'), url('../assets/Layer_2_night.png'), url('../assets/Layer_1_night.png');
 }
+
+.main.sakura {
+  background-image: url('../assets/Layer_5_sakura.png'), url('../assets/Layer_3_sakura.png'), url('../assets/Layer_4_sakura.png'), url('../assets/Layer_2_sakura.png'), url('../assets/Layer_1_sakura.png');
+}
+
 
 .game-area {
   position: relative;
