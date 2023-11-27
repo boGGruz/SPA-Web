@@ -22,7 +22,7 @@
 
           <div class="field">
             <div class="control">
-              <button @click="submitForm" type="button" class="btn btn-outline-secondary" >Log in</button>
+              <button @click="submitForm" type="button" class="btn btn-outline-secondary">Log in</button>
             </div>
           </div>
 
@@ -70,7 +70,7 @@ export default defineComponent({
 
             localStorage.setItem("token", token)
 
-            const toPath = this.$route.query.to || '/samurai-way'
+            const toPath = this.$route.query.to || '/screen-play'
 
             this.$router.push(toPath as string)
           })

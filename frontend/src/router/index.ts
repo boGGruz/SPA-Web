@@ -2,6 +2,7 @@ import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
 import SignUp from "@/views/SignUp.vue";
 import LogIn from "@/views/LogIn.vue";
 import Game from "@/views/Game.vue";
+import ScreenPlay from "@/views/ScreenPlay.vue";
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -19,6 +20,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'Game',
         component: Game
     },
+    {
+        path: '/screen-play',
+        name: 'Play',
+        component: ScreenPlay
+    }
 ]
 
 const router = createRouter({
