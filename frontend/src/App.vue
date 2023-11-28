@@ -7,9 +7,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import 'bootstrap/dist/css/bootstrap.min.css'
+import ScreenPlay from "@/views/ScreenPlay.vue";
+import axios from "axios";
 
-export default({
-
+export default ({
 });
 </script>
 

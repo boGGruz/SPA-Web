@@ -16,12 +16,14 @@
     <button class="button-play" @click="click"><router-link to="/samurai-way" class="log"></router-link>
       <p>Play</p>
     </button>
+    <button class="action-button" @click="logout">Выйти</button>
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue'
 import {useRouter} from "vue-router";
+import axios from "axios";
 export default defineComponent ({
   el:'#app',
   data() {
@@ -46,7 +48,24 @@ export default defineComponent ({
         return {
             click
         }
+    },
+  methods:{
+    async logout(): Promise<void> {
+      try {
+        await axios.post("/api/v1/token/logout/");
+
+        this.$store.commit("clearTokens");
+        localStorage.removeItem("token");
+
+        // Сбрасываем заголовок авторизации в axios
+        axios.defaults.headers.common["Authorization"] = "";
+
+        this.$router.push("/");
+      } catch (error) {
+        console.error("Error during logout:", error);
+      }
     }
+  }
 })
 </script>
 
