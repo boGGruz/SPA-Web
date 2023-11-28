@@ -99,9 +99,10 @@ li {
 }
 
 .button-play {
-  height: 50%;
-  margin-top: 18%;
-  margin-left: 9%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   padding: 1rem 3rem 0rem 3rem;
   font-family: Poppins, sans-serif;
   font-weight: 900;
