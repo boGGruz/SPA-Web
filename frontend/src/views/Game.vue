@@ -9,7 +9,7 @@
     <h1 class="score">Очки: {{ score }}</h1>
     <div class="game-area">
       <div class="character"
-           :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${characterFrames[frameIndex]})` }">
+           :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${isJumping ? require('@/assets/run_6_clear.png') : characterFrames[frameIndex]})` }">
       </div>
       <div v-for="(obstacle, index) in obstacles" :key="index" class="obstacle"
            :style="{ bottom: `${obstacle.bottom}px`, left: `${obstacle.left}px`, backgroundImage: `url(${require('@/assets/spike_1.png')})` }"></div>
@@ -20,7 +20,6 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-
 
 export default defineComponent({
   data() {
@@ -55,6 +54,7 @@ export default defineComponent({
       parallaxLayer6Speed: 0.5 as number,
       isNightMode: false as boolean,
       isSakura: false as boolean,
+      isMusic: true
     };
   },
   methods: {
@@ -65,7 +65,9 @@ export default defineComponent({
     },
     animateCharacter() {
       setInterval(() => {
-        this.frameIndex = (this.frameIndex + 1) % this.characterFrames.length;
+        if (!this.isJumping) {
+          this.frameIndex = (this.frameIndex + 1) % this.characterFrames.length;
+        }
       }, 100);
     },
     handleKeyDown(event: KeyboardEvent) {
@@ -99,8 +101,9 @@ export default defineComponent({
       requestAnimationFrame(jumpAnimation);
     },
     moveObstacles() {
+      const obstacleSpeed = 5 * this.coef;
       for (let i = 0; i < this.obstacles.length; i++) {
-        this.obstacles[i].left -= (5 * this.coef);
+        this.obstacles[i].left -= obstacleSpeed;
         if (this.obstacles[i].left < -7) {
           this.obstacles.splice(i, 1);
           this.score++;
@@ -108,6 +111,7 @@ export default defineComponent({
           this.checkSakura();
         }
       }
+      this.parallaxOffsetGround -= obstacleSpeed;
     },
     checkCollisions() {
       const dino = {
@@ -139,8 +143,8 @@ export default defineComponent({
       this.obstacles = [];
       this.score = 0;
       this.isNightMode = false;
-      this.$el.classList.remove('night-mode');
     },
+
     gameLoop() {
       this.moveObstacles();
       this.checkCollisions();
@@ -167,7 +171,6 @@ export default defineComponent({
         this.parallaxOffsetLayer4 += this.parallaxLayer4Speed;
         this.parallaxOffsetLayer2 += this.parallaxLayer2Speed;
         this.parallaxOffsetLayer5 -= this.parallaxLayer5Speed;
-        this.parallaxOffsetGround -= 5 * this.coef;
         const containerWidth = 1280;
         if (this.parallaxOffsetLayer3 <= -containerWidth) {
           this.parallaxOffsetLayer3 = 0;
@@ -191,6 +194,25 @@ export default defineComponent({
   mounted() {
     this.playBackgroundMusic();
     this.$el.focus();
+    const preloadImages = (imageUrls: string[]) => {
+      imageUrls.forEach((url) => {
+        const img = new Image();
+        img.src = url;
+      });
+    };
+
+    preloadImages([
+      require('@/assets/Layer_5_night.png'),
+      require('@/assets/Layer_3_night.png'),
+      require('@/assets/Layer_4_night.png'),
+      require('@/assets/Layer_2_night.png'),
+      require('@/assets/Layer_1_night.png'),
+      require('@/assets/Layer_5_sakura.png'),
+      require('@/assets/Layer_3_sakura.png'),
+      require('@/assets/Layer_4_sakura.png'),
+      require('@/assets/Layer_2_sakura.png'),
+      require('@/assets/Layer_1_sakura.png')
+    ]);
     const addObstacle = () => {
       this.obstacles.push({
         bottom: 0,
@@ -250,8 +272,7 @@ export default defineComponent({
   position: relative;
   height: 40px;
   width: 100%;
-  background-image: url('../assets/Tile_22.png');
-  background-repeat: repeat;
+  background-image: url('../assets/tile-dirt.png');
   top: 100%;
 }
 
@@ -274,8 +295,8 @@ export default defineComponent({
 
 .character {
   position: absolute;
-  width: 140px;
-  height: 140px;
+  width: 150px;
+  height: 150px;
   background-size: cover;
 }
 
