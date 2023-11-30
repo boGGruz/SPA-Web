@@ -1,22 +1,49 @@
 <template>
-  <div class="main" :class="{ 'night-mode': isNightMode, 'sakura': isSakura }" @keydown="handleKeyDown" tabindex="0"
-       :style="{ backgroundPosition: `${parallaxOffsetLayer5}px 0, ${parallaxOffsetLayer3}px 0, ${parallaxOffsetLayer4}px 0, ${parallaxOffsetLayer2}px 0, 0 0` }">
+  <div
+      class="main"
+      :class="{ 'night': isNightMode, 'evening': isEvening, 'day': isDay, 'morning': isMorning }"
+      @keydown="handleKeyDown"
+      tabindex="0"
+      :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
+  >
     <audio id="backgroundMusic" loop>
-      <source src="@/assets/soundtrack.mp3" type="audio/mp3">
+      <source src="@/assets/soundtrack.mp3" type="audio/mp3"/>
       Your browser does not support the audio tag.
     </audio>
 
     <h1 class="score">Очки: {{ score }}</h1>
+    <div class="guide">
+      <h1 class="guide-space">Прыжок: Пробел</h1>
+      <h1 class="guide-attack">Атака: Левый Ctrl</h1>
+    </div>
+
     <div class="game-area">
-      <div class="character"
-           :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${isJumping ? require('@/assets/run_6_clear.png') : characterFrames[frameIndex]})` }">
-      </div>
-      <div v-for="(obstacle, index) in obstacles" :key="index" class="obstacle"
-           :style="{ bottom: `${obstacle.bottom}px`, left: `${obstacle.left}px`, backgroundImage: `url(${require('@/assets/spike_1.png')})` }"></div>
-      <div class="ground" :style="{ backgroundPosition: `${parallaxOffsetGround}px 0` }"></div>
+      <div
+          class="character"
+          :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${
+            isJumping
+            ? require('@/assets/run_6_clear.png')
+            : isAttacking
+            ? attackFrames[attackFrameIndex]
+            : characterFrames[frameIndex]
+          })`
+      }"
+      ></div>
+      <div
+          v-for="(obstacle, index) in obstacles"
+          :key="index"
+          class="obstacle"
+          :class="{ 'ninja': obstacle.isNinja }"
+          :style="{
+            bottom: `${obstacle.bottom}px`,
+            left: `${obstacle.left}px`,
+            backgroundImage: `url(${obstacle.obstacleImage})`}"
+      ></div>
+      <div class="ground" :style="{ backgroundPosition: `${Math.floor(parallaxOffsetGround)}px 0` }"></div>
     </div>
   </div>
 </template>
+
 
 <script lang="ts">
 import {defineComponent} from 'vue'
@@ -28,8 +55,18 @@ export default defineComponent({
       dinoLeft: 20 as number,
       isJumping: false as boolean,
       score: 0 as number,
-      obstacles: [] as { bottom: number; left: number }[],
+      obstacles: [] as { bottom: number; left: number; obstacleImage: string; isNinja: boolean }[],
       coef: 1 as number,
+      ninjaFrames: [
+        require('@/assets/enemy_run_1.png'),
+        require('@/assets/enemy_run_2.png'),
+        require('@/assets/enemy_run_3.png'),
+        require('@/assets/enemy_run_4.png'),
+        require('@/assets/enemy_run_5.png'),
+        require('@/assets/enemy_run_6.png'),
+        require('@/assets/enemy_run_7.png'),
+        require('@/assets/enemy_run_8.png'),
+      ],
       characterFrames: [
         require('@/assets/run_1.png'),
         require('@/assets/run_2.png'),
@@ -40,7 +77,15 @@ export default defineComponent({
         require('@/assets/run_7.png'),
         require('@/assets/run_8.png'),
       ],
+      attackFrames: [
+        require('@/assets/attack_1.png'),
+        require('@/assets/attack_2.png'),
+        require('@/assets/attack_3.png'),
+      ],
+      isAttacking: false as boolean,
+      attackFrameIndex: 0 as number,
       frameIndex: 0 as number,
+      ninjaFrameIndex: 0 as number,
       parallaxOffsetGround: 0 as number,
       parallaxOffsetLayer6: 0 as number,
       parallaxOffsetLayer5: 0 as number,
@@ -53,8 +98,11 @@ export default defineComponent({
       parallaxLayer5Speed: 0.5 as number,
       parallaxLayer6Speed: 0.5 as number,
       isNightMode: false as boolean,
-      isSakura: false as boolean,
-      isMusic: true
+      isEvening: false as boolean,
+      isMusic: true as boolean,
+      isNinja: false as boolean,
+      isDay: false as boolean,
+      isMorning: false as boolean
     };
   },
   methods: {
@@ -70,11 +118,63 @@ export default defineComponent({
         }
       }, 100);
     },
+    animateNinja() {
+      setInterval(() => {
+        this.ninjaFrameIndex = (this.ninjaFrameIndex + 1) % this.ninjaFrames.length;
+      }, 100);
+    },
     handleKeyDown(event: KeyboardEvent) {
-      if (event.key === " " && !this.isJumping) {
+      if (event.key === ' ' && !this.isJumping) {
         this.isJumping = true;
         this.jump();
+      } else if (event.code === 'ControlLeft') {
+        this.attackNearbyEnemy();
       }
+    },
+
+    attackNearbyEnemy() {
+      if (!this.isAttacking) {
+        this.isAttacking = true;
+        this.animateAttack();
+      }
+      const playerPosition = {
+        left: this.dinoLeft,
+        right: this.dinoLeft + 200,
+        bottom: this.dinoBottom + 200,
+      };
+
+      for (let i = 0; i < this.obstacles.length; i++) {
+        const obstacle = this.obstacles[i];
+        const enemyNinjaPosition = {
+          left: obstacle.left,
+          right: obstacle.left + (obstacle.isNinja ? 70 : 50),
+          bottom: obstacle.bottom + (obstacle.isNinja ? 70 : 38),
+        };
+
+        if (
+            playerPosition.right > enemyNinjaPosition.left &&
+            playerPosition.left < enemyNinjaPosition.right &&
+            playerPosition.bottom > enemyNinjaPosition.bottom && obstacle.isNinja
+        ) {
+          this.obstacles.splice(i, 1);
+          this.score += 3;
+          this.checkNightMode();
+          this.checkEvening();
+          this.checkDay();
+          this.checkMorning();
+          break;
+        }
+      }
+    },
+    animateAttack() {
+      const attackInterval = setInterval(() => {
+        this.attackFrameIndex = (this.attackFrameIndex + 1) % this.attackFrames.length;
+      }, 80);
+
+      setTimeout(() => {
+        clearInterval(attackInterval);
+        this.isAttacking = false;
+      }, this.attackFrames.length * 80);
     },
     jump() {
       const jumpHeight: number = 100;
@@ -103,16 +203,27 @@ export default defineComponent({
     moveObstacles() {
       const obstacleSpeed = 5 * this.coef;
       for (let i = 0; i < this.obstacles.length; i++) {
-        this.obstacles[i].left -= obstacleSpeed;
-        if (this.obstacles[i].left < -7) {
+        const obstacle = this.obstacles[i];
+
+
+        if (obstacle.isNinja) {
+          obstacle.obstacleImage = this.ninjaFrames[this.ninjaFrameIndex];
+        }
+
+        obstacle.left -= obstacleSpeed;
+        if (obstacle.left < -7) {
           this.obstacles.splice(i, 1);
           this.score++;
           this.checkNightMode();
-          this.checkSakura();
+          this.checkEvening();
+          this.checkDay();
+          this.checkMorning();
         }
       }
       this.parallaxOffsetGround -= obstacleSpeed;
     },
+
+
     checkCollisions() {
       const dino = {
         bottom: this.dinoBottom,
@@ -142,28 +253,42 @@ export default defineComponent({
     resetGame() {
       this.obstacles = [];
       this.score = 0;
-      this.isNightMode = false;
     },
 
     gameLoop() {
       this.moveObstacles();
       this.checkCollisions();
     },
-
-    checkSakura() {
-      if (this.score >= 25 && this.score < 50 && !this.isSakura) {
-        this.isSakura = true;
-      } else if (this.score >= 50) {
-        this.isSakura = false;
+    checkMorning() {
+      if (this.score % 100 >= 0 && this.score % 100 < 25 && !this.isMorning) {
+        this.isMorning = true;
+      } else if (this.score % 100 >= 25) {
+        this.isMorning = false;
       }
     },
-
+    checkDay() {
+      if (this.score % 100 >= 25 && this.score % 100 < 50 && !this.isDay) {
+        this.isDay = true;
+      } else if (this.score % 100 >= 50) {
+        this.isDay = false;
+      }
+    },
+    checkEvening() {
+      if (this.score % 100 >= 50 && this.score % 100 < 75 && !this.isEvening) {
+        this.isEvening = true;
+      } else if (this.score % 100 >= 75) {
+        this.isEvening = false;
+      }
+    },
     checkNightMode() {
-      if (this.score >= 50 && this.score < 100 && !this.isNightMode) {
+      if (this.score % 100 >= 75 && this.score % 100 < 100 && !this.isNightMode) {
         this.isNightMode = true;
-      } else if (this.score > 100) {
+      } else if (this.score % 100 < 75) {
         this.isNightMode = false;
       }
+    },
+    startGame() {
+      console.log('Игра начинается!');
     },
     parallaxAnimation() {
       setInterval(() => {
@@ -194,42 +319,66 @@ export default defineComponent({
   mounted() {
     this.playBackgroundMusic();
     this.$el.focus();
-    const preloadImages = (imageUrls: string[]) => {
+    const preloadImages = (imageUrls: string[], callback: () => void) => {
+      let loadedImages = 0;
+
+      const checkAllImagesLoaded = () => {
+        loadedImages++;
+        if (loadedImages === imageUrls.length) {
+          callback();
+        }
+      };
+
       imageUrls.forEach((url) => {
         const img = new Image();
         img.src = url;
+        img.addEventListener('load', checkAllImagesLoaded);
       });
     };
 
     preloadImages([
+      require('@/assets/Layer_5.png'),
+      require('@/assets/Layer_3.png'),
+      require('@/assets/Layer_4.png'),
+      require('@/assets/Layer_2_morning.png'),
+      require('@/assets/Layer_1_day.png'),
       require('@/assets/Layer_5_night.png'),
       require('@/assets/Layer_3_night.png'),
       require('@/assets/Layer_4_night.png'),
       require('@/assets/Layer_2_night.png'),
+      require('@/assets/Layer_1_night.png'),
       require('@/assets/Layer_1_night.png'),
       require('@/assets/Layer_5_sakura.png'),
       require('@/assets/Layer_3_sakura.png'),
       require('@/assets/Layer_4_sakura.png'),
       require('@/assets/Layer_2_sakura.png'),
       require('@/assets/Layer_1_sakura.png')
-    ]);
+    ], this.startGame);
     const addObstacle = () => {
+      const isNinja = Math.random() < 0.15;
+      const obstacleImage = isNinja ? this.ninjaFrames[this.ninjaFrameIndex] : require('@/assets/spike_1.png');
       this.obstacles.push({
         bottom: 0,
         left: 1270,
+        obstacleImage: obstacleImage,
+        isNinja: isNinja,
       });
-      this.coef += 0.05
-      this.parallaxLayer3Speed += 0.01
-      this.parallaxLayer2Speed += 0.01
-      this.parallaxLayer4Speed += 0.01
-      this.parallaxLayer5Speed += 0.01
+      this.coef += 0.05;
+      this.parallaxLayer3Speed += 0.01;
+      this.parallaxLayer2Speed += 0.01;
+      this.parallaxLayer4Speed += 0.01;
+      this.parallaxLayer5Speed += 0.01;
+
       setTimeout(addObstacle, (500 + Math.random() * 2000) + 0.05);
     };
     addObstacle();
     setInterval(this.gameLoop, 15)
     this.animateCharacter();
     this.parallaxAnimation();
-  },
+    this.animateNinja();
+    window.addEventListener('keydown', this.handleKeyDown);
+    this.checkMorning();
+  }
 })
 </script>
 
@@ -246,20 +395,50 @@ export default defineComponent({
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-image: url('../assets/Layer_5.png'), url('../assets/Layer_3.png'), url('../assets/Layer_4.png'), url('../assets/Layer_2.png'), url('../assets/Layer_1.png');
   background-repeat: repeat;
   background-size: cover;
   transition: background-image 2s ease;
 }
 
-.main.night-mode {
+.main.morning {
+  background-image: url('../assets/Layer_5.png'), url('../assets/Layer_3.png'), url('../assets/Layer_4_morning.png'), url('../assets/Layer_2_morning.png'), url('../assets/Layer_1_morning.png');
+}
+
+.main.day {
+  background-image: url('../assets/Layer_5.png'), url('../assets/Layer_3.png'), url('../assets/Layer_4.png'), url('../assets/Layer_2.png'), url('../assets/Layer_1_day.png');
+}
+
+.main.night {
   background-image: url('../assets/Layer_5_night.png'), url('../assets/Layer_3_night.png'), url('../assets/Layer_4_night.png'), url('../assets/Layer_2_night.png'), url('../assets/Layer_1_night.png');
 }
 
-.main.sakura {
+.main.evening {
   background-image: url('../assets/Layer_5_sakura.png'), url('../assets/Layer_3_sakura.png'), url('../assets/Layer_4_sakura.png'), url('../assets/Layer_2_sakura.png'), url('../assets/Layer_1_sakura.png');
 }
 
+.guide {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  justify-content: right;
+}
+
+.guide-space {
+  font-size: 30px
+}
+
+.guide-attack {
+  font-size: 30px
+}
+
+.obstacle.ninja {
+  width: 70px;
+  height: 70px;
+
+}
 
 .game-area {
   position: relative;
@@ -271,8 +450,8 @@ export default defineComponent({
 .ground {
   position: relative;
   height: 40px;
-  width: 100%;
-  background-image: url('../assets/tile-dirt.png');
+  width: 1280px;
+  background-image: url('../assets/Tile_22.png');
   top: 100%;
 }
 

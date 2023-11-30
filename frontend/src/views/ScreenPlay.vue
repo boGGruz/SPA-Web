@@ -13,10 +13,11 @@
         </ol>
       </transition>
     </div>
-    <button class="button-play" @click="click"><router-link to="/samurai-way" class="log"></router-link>
+    <button class="button-play" @click="click">
+      <router-link to="/samurai-way" class="log"></router-link>
       <p>Play</p>
     </button>
-    <button class="action-button" @click="logout">Выйти</button>
+    <button class="action-button" @click="logout">Выйти из аккаунта</button>
   </div>
 </template>
 
@@ -24,32 +25,33 @@
 import {defineComponent} from 'vue'
 import {useRouter} from "vue-router";
 import axios from "axios";
-export default defineComponent ({
-  el:'#app',
+
+export default defineComponent({
+  el: '#app',
   data() {
     return {
       items: [
-          'Abobus: 127',
-          'Bobik: 123',
-          'Cema: 99',
-          'HerPsini: 28',
-          'Bot: 1',
+        'Abobus: 127',
+        'Bobik: 123',
+        'Cema: 99',
+        'HerPsini: 28',
+        'Bot: 1',
       ],
       show: false
     }
   },
   setup() {
-        const router = useRouter()
-        const click = () => {
-            router.push({
-                path: 'samurai-way'
-            })
-        }
-        return {
-            click
-        }
-    },
-  methods:{
+    const router = useRouter()
+    const click = () => {
+      router.push({
+        path: 'samurai-way'
+      })
+    }
+    return {
+      click
+    }
+  },
+  methods: {
     async logout(): Promise<void> {
       try {
         await axios.post("/api/v1/token/logout/");
@@ -92,6 +94,7 @@ li {
   padding-left: 1.5rem;
   padding-top: 1rem;
   width: 12%;
+  cursor: pointer;
 }
 
 .cup-press {
@@ -110,5 +113,12 @@ li {
   letter-spacing: 1px;
   border: 3px solid #000;
   border-radius: 3rem;
+}
+
+.action-button {
+  position: fixed;
+  left: 50%;
+  top: 10%;
+  transform: translate(-50%, -10%);
 }
 </style>
