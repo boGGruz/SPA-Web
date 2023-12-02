@@ -1,5 +1,6 @@
 <template>
-  <div class="content">
+  <div class="content" :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
+>
     <div class="content-transition">
       <transition name="fade" mode="out-in">
         <div>
@@ -37,7 +38,18 @@ export default defineComponent({
         'HerPsini: 28',
         'Bot: 1',
       ],
-      show: false
+      show: false,
+      parallaxOffsetGround: 0 as number,
+      parallaxOffsetLayer6: 0 as number,
+      parallaxOffsetLayer5: 0 as number,
+      parallaxOffsetLayer4: 0 as number,
+      parallaxOffsetLayer3: 0 as number,
+      parallaxOffsetLayer2: 0 as number,
+      parallaxLayer2Speed: 0.05 as number,
+      parallaxLayer3Speed: 1 as number,
+      parallaxLayer4Speed: 0.35 as number,
+      parallaxLayer5Speed: 0.5 as number,
+      parallaxLayer6Speed: 0.5 as number,
     }
   },
   setup() {
@@ -66,8 +78,54 @@ export default defineComponent({
       } catch (error) {
         console.error("Error during logout:", error);
       }
-    }
+    },
+    parallaxAnimation() {
+      setInterval(() => {
+        this.parallaxOffsetLayer3 -= this.parallaxLayer3Speed;
+        this.parallaxOffsetLayer4 += this.parallaxLayer4Speed;
+        this.parallaxOffsetLayer2 += this.parallaxLayer2Speed;
+        this.parallaxOffsetLayer5 -= this.parallaxLayer5Speed;
+        const containerWidth = 1280;
+        if (this.parallaxOffsetLayer3 <= -containerWidth) {
+          this.parallaxOffsetLayer3 = 0;
+        }
+
+        if (this.parallaxOffsetLayer4 <= -containerWidth) {
+          this.parallaxOffsetLayer4 = 0;
+        }
+
+        if (this.parallaxOffsetLayer5 <= -containerWidth) {
+          this.parallaxOffsetLayer5 = 0;
+        }
+
+        if (this.parallaxOffsetGround <= -containerWidth) {
+          this.parallaxOffsetGround = 0;
+        }
+      }, 20);
+    },
+  },
+
+  mounted() {
+    this.$el.focus();
+    const preloadImages = (imageUrls: string[], callback: () => void) => {
+      let loadedImages = 0;
+
+      const checkAllImagesLoaded = () => {
+        loadedImages++;
+        if (loadedImages === imageUrls.length) {
+          callback();
+        }
+      };
+
+      imageUrls.forEach((url) => {
+        const img = new Image();
+        img.src = url;
+        img.addEventListener('load', checkAllImagesLoaded);
+      });
+    };
+    this.parallaxAnimation();
   }
+
 })
 </script>
 
@@ -77,6 +135,18 @@ export default defineComponent({
 .content {
   display: flex;
   padding: 1rem;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-repeat: repeat;
+  background-size: cover;
+  background-image: url('../assets/Layer_3_night.png'),
+                    url('../assets/Layer_4_night.png'),
+                    url('../assets/Layer_2_night.png'),
+                    url('../assets/Layer_1_night.png');
 }
 
 li {
@@ -93,7 +163,7 @@ li {
 .cup {
   padding-left: 1.5rem;
   padding-top: 1rem;
-  width: 12%;
+  width: 16%;
   cursor: pointer;
 }
 
@@ -117,8 +187,8 @@ li {
 
 .action-button {
   position: fixed;
-  left: 50%;
-  top: 10%;
+  left: 93%;
+  top: 5%;
   transform: translate(-50%, -10%);
 }
 </style>
