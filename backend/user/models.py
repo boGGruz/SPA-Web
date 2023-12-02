@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import User
 
 class Score(models.Model):
@@ -7,5 +7,6 @@ class Score(models.Model):
 
     def __str__(self):
         return str(self.score)
+
 
 

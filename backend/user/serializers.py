@@ -8,9 +8,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username']
 
 class ScoreSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    username = serializers.ReadOnlyField(source='user.username')
 
     class Meta:
         model = Score
-        fields = ['user', 'score']
+        fields = ['username', 'score']
 

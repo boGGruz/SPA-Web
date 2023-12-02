@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import ScoreApi
+from .views import LeaderboardView, UserScoreView
 
 urlpatterns = [
-    path('', ScoreApi.as_view(), name='score-api'),
+    path('', UserScoreView.as_view(), name='user-score'),
+    path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
 ]

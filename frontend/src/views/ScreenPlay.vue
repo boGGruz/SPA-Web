@@ -9,7 +9,9 @@
       </transition>
       <transition name="fade">
         <ol v-if="show">
-          <li v-for="item in items">{{ item }}</li>
+          <li v-for="(entry, index) in leaderboard" :key="index">
+            {{ entry.username }} - {{ entry.score }}
+          </li>
         </ol>
       </transition>
     </div>
@@ -30,14 +32,9 @@ export default defineComponent({
   el: '#app',
   data() {
     return {
-      items: [
-        'Abobus: 127',
-        'Bobik: 123',
-        'Cema: 99',
-        'HerPsini: 28',
-        'Bot: 1',
-      ],
-      show: false
+      leaderboard: [],
+      show: false,
+      user_data: '' as string,
     }
   },
   setup() {
@@ -50,6 +47,9 @@ export default defineComponent({
     return {
       click
     }
+  },
+  mounted() {
+    this.fetchLeaderboard();
   },
   methods: {
     async logout(): Promise<void> {
@@ -66,8 +66,16 @@ export default defineComponent({
       } catch (error) {
         console.error("Error during logout:", error);
       }
-    }
-  }
+    },
+    async fetchLeaderboard() {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/v1/score/leaderboard/');
+        this.leaderboard = response.data;
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+      }
+    },
+  },
 })
 </script>
 

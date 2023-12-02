@@ -47,6 +47,7 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
+import axios from "axios";
 
 export default defineComponent({
   data() {
@@ -224,7 +225,7 @@ export default defineComponent({
     },
 
 
-    checkCollisions() {
+    async checkCollisions() {
       const dino = {
         bottom: this.dinoBottom,
         left: this.dinoLeft,
@@ -243,6 +244,31 @@ export default defineComponent({
         if (dino.bottom < obs.top &&
             dino.right > obs.left &&
             dino.left < obs.right) {
+          const username = this.$store.state.username;
+
+          const finalScore = this.score;
+          const token = localStorage.getItem('token');
+          if (token) {
+            axios.defaults.headers.common['Authorization'] = `Token ${token}`;
+            const response = await axios.get('http://127.0.0.1:8000/api/v1/score/leaderboard', {
+              params: {
+                username,
+              }
+            });
+            const UserScore = response.data;
+            let UserScore1: number = 0;
+            for (const tuple of UserScore) {
+              const username1 = tuple[0];
+              const score1 = tuple[1];
+
+              if (username1 == username) {
+                UserScore1 = score1;
+              }
+            }
+            if (UserScore1 < finalScore) {
+              axios.patch('http://127.0.0.1:8000/api/v1/score/', {score: finalScore})
+            }
+          }
           alert("Game Over! Your score: " + this.score);
           window.location.reload();
           this.resetGame();

@@ -66,6 +66,8 @@ export default defineComponent({
 
             this.$store.commit('setToken', token)
 
+            this.$store.commit('setUsername', this.username);
+
             axios.defaults.headers.common["Authorization"] = "Token " + token
 
             localStorage.setItem("token", token)
