@@ -41,6 +41,16 @@
       ></div>
       <div class="ground" :style="{ backgroundPosition: `${Math.floor(parallaxOffsetGround)}px 0` }"></div>
     </div>
+    <div v-if="isGameOver" class="overlay"></div>
+
+    <div v-if="isGameOver" class="game-over-screen">
+      <h1 class="game-over__header">Game Over</h1>
+      <h2 class="game-over__score">Score: {{ score }}</h2>
+      <button @click="resetGame" class="game-over__button">Restart</button>
+      <router-link class="game-over_router-link" to="/screen-play">
+        <button class="game-over__button-menu">Back to menu</button>
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -103,7 +113,8 @@ export default defineComponent({
       isMusic: true as boolean,
       isNinja: false as boolean,
       isDay: false as boolean,
-      isMorning: false as boolean
+      isMorning: false as boolean,
+      isGameOver: false as boolean
     };
   },
   methods: {
@@ -245,7 +256,7 @@ export default defineComponent({
         if (dino.bottom < obs.top &&
             dino.right > obs.left &&
             dino.left < obs.right) {
-
+          this.isGameOver = true;
           const finalScore = this.score;
           const token = localStorage.getItem('token');
           if (token) {
@@ -262,25 +273,26 @@ export default defineComponent({
                 UserScore1 = tuple.score;
               }
             }
-            if (UserScore1 < finalScore) {
+            if (UserScore1 <= finalScore) {
               axios.patch('http://127.0.0.1:8000/api/v1/score/', {score: finalScore})
             }
           }
-          alert("Game Over! Your score: " + this.score);
-          window.location.reload();
-          this.resetGame();
         }
       }
     },
 
     resetGame() {
+      this.isGameOver = false;
       this.obstacles = [];
       this.score = 0;
+      window.location.reload();
     },
 
     gameLoop() {
-      this.moveObstacles();
-      this.checkCollisions();
+      if (!this.isGameOver) {
+        this.moveObstacles();
+        this.checkCollisions();
+      }
     },
     checkMorning() {
       if (this.score % 100 >= 0 && this.score % 100 < 25 && !this.isMorning) {
@@ -412,12 +424,9 @@ export default defineComponent({
 }
 
 .main {
-  width: 1280px;
-  height: 700px;
+  width: 100%;
+  height: 100%;
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background-repeat: repeat;
   background-size: cover;
   transition: background-image 2s ease;
@@ -502,4 +511,76 @@ export default defineComponent({
   background-size: cover;
 }
 
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(15px);
+  z-index: 999;
+}
+
+.game-over-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 1000;
+  color: white;
+}
+
+.game-over__button {
+  border-radius: 3rem;
+  font-size: 20px;
+  text-decoration: none;
+  color: black;
+  font-weight: 700;
+  padding: 1rem 2rem;
+  margin: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30vw;
+}
+
+.game-over__button:hover {
+  background-color: darkcyan;
+}
+
+.game-over_router-link {
+  text-decoration: none;
+}
+
+.game-over__header {
+  font-weight: 900;
+  font-size: 70px;
+}
+
+.game-over__button-menu {
+  border-radius: 3rem;
+  font-size: 20px;
+  text-decoration: none;
+  color: black;
+  font-weight: 700;
+  padding: 1rem 2rem;
+  margin: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30vw;
+}
+
+.game-over__button-menu:hover {
+  background-color: darkcyan;
+}
 </style>
