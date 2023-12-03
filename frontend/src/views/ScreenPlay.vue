@@ -1,6 +1,7 @@
 <template>
-  <div class="content" :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
->
+  <div class="content"
+       :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
+  >
     <div class="content-transition">
       <transition name="fade" mode="out-in">
         <div>
@@ -63,14 +64,15 @@ export default defineComponent({
   methods: {
     async logout(): Promise<void> {
       try {
-        console.log("Authorization Token:", axios.defaults.headers.common["Authorization"]);
-        await axios.post("/api/v1/token/logout/");
-
-        this.$store.commit("clearTokens");
-        localStorage.removeItem("token");
-
-        axios.defaults.headers.common["Authorization"] = "";
-
+        const token = localStorage.getItem("token");
+        if (token) {
+          axios.defaults.headers.common["Authorization"] = "Token " + token;
+          console.log("Authorization Token:", axios.defaults.headers.common["Authorization"]);
+          await axios.post("/api/v1/token/logout/");
+          this.$store.commit("clearTokens");
+          localStorage.removeItem("token");
+          axios.defaults.headers.common["Authorization"] = "";
+        }
         this.$router.push("/");
       } catch (error) {
         console.error("Error during logout:", error);
@@ -109,21 +111,21 @@ export default defineComponent({
       }, 20);
     },
   },
-  mounted() {
+  created() {
 
     const token = localStorage.getItem("token");
 
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-
-      this.fetchLeaderboard();
-      this.$el.focus();
-      this.parallaxAnimation();
-    }
-    else{
+    } else {
       console.log("Пользователь не авторизован");
     }
+  },
+  mounted() {
+    this.fetchLeaderboard();
+    this.$el.focus();
+    this.parallaxAnimation();
     const preloadImages = (imageUrls: string[], callback: () => void) => {
       let loadedImages = 0;
 
@@ -160,9 +162,9 @@ export default defineComponent({
   background-repeat: repeat;
   background-size: cover;
   background-image: url('../assets/Layer_3_night.png'),
-                    url('../assets/Layer_4_night.png'),
-                    url('../assets/Layer_2_night.png'),
-                    url('../assets/Layer_1_night.png');
+  url('../assets/Layer_4_night.png'),
+  url('../assets/Layer_2_night.png'),
+  url('../assets/Layer_1_night.png');
 }
 
 li {

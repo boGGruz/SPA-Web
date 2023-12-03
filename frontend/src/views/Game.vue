@@ -232,6 +232,7 @@ export default defineComponent({
         right: this.dinoLeft + 50,
         top: this.dinoBottom + 50,
       };
+      const username = localStorage.getItem('username');
 
       for (const obstacle of this.obstacles) {
         const obs = {
@@ -244,7 +245,6 @@ export default defineComponent({
         if (dino.bottom < obs.top &&
             dino.right > obs.left &&
             dino.left < obs.right) {
-          const username = this.$store.state.username;
 
           const finalScore = this.score;
           const token = localStorage.getItem('token');
@@ -255,14 +255,11 @@ export default defineComponent({
                 username,
               }
             });
-            const UserScore = response.data;
+            const UserScore: any[] = response.data;
             let UserScore1: number = 0;
             for (const tuple of UserScore) {
-              const username1 = tuple[0];
-              const score1 = tuple[1];
-
-              if (username1 == username) {
-                UserScore1 = score1;
+              if (tuple.username == username) {
+                UserScore1 = tuple.score;
               }
             }
             if (UserScore1 < finalScore) {

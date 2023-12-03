@@ -50,9 +50,6 @@ export default defineComponent({
   },
   methods: {
     async submitForm() {
-      axios.defaults.headers.common["Authorization"] = ""
-
-      localStorage.removeItem("token")
 
       const formData = {
         username: this.username,
@@ -71,6 +68,8 @@ export default defineComponent({
             axios.defaults.headers.common["Authorization"] = "Token " + token
 
             localStorage.setItem("token", token)
+            localStorage.setItem('username', this.username);
+            console.log("Token:", token);
 
             const toPath = this.$route.query.to || '/screen-play'
 

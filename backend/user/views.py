@@ -12,29 +12,6 @@ class LeaderboardView(generics.ListAPIView):
     queryset = Score.objects.all().order_by('-score')
     serializer_class = ScoreSerializer
 
-    def perform_create(self, serializer):
-        user = self.request.user  # Используем пользователя из токена
-        new_score = self.request.data.get('score')
-
-        try:
-            user_score = Score.objects.get(user=user)
-            previous_score = user_score.score
-        except Score.DoesNotExist:
-            user_score = None
-            previous_score = 0
-
-        if user_score is None or new_score > previous_score:
-            if user_score is None:
-                user_score = Score(user=user, score=new_score)
-            else:
-                user_score.score = new_score
-            user_score.save()
-
-            serializer.save()
-            return Response({'detail': 'Score updated successfully'}, status=status.HTTP_200_OK)
-
-        return Response({'detail': 'Score is not higher than the previous one'}, status=status.HTTP_400_BAD_REQUEST)
-
 class UserScoreView(generics.UpdateAPIView):
     queryset = Score.objects.all()
     serializer_class = ScoreSerializer
@@ -42,8 +19,10 @@ class UserScoreView(generics.UpdateAPIView):
 
     def get_object(self):
         user = self.request.user
-        obj, created = Score.objects.get_or_create(user=user)
-        return obj
+        try:
+            return Score.objects.get(user=user)
+        except Score.DoesNotExist:
+            return Score.objects.create(user=user)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
