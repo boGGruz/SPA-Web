@@ -1,27 +1,40 @@
 <template>
   <div class="content"
-       :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
+       :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
   >
     <div class="content-transition">
       <transition name="fade" mode="out-in">
-        <div>
+        <div class="cup-container">
           <i class="menu" v-if="!show" @click="show = !show" key="menu"><img src="../assets/cup.png" class="cup"></i>
           <i class="clear" v-else @click="show = !show" key="clear"><img src="../assets/cup.png" class="cup-press cup"></i>
         </div>
       </transition>
       <transition name="fade">
-        <ol v-if="show">
-          <li v-for="(entry, index) in leaderboard" :key="index">
-            {{ entry.username }} - {{ entry.score }}
-          </li>
-        </ol>
+        <div class="leaderboard-container" v-if="show">
+          <ol class="leaderbord-list">
+            <li :class="{'highlighted': entry.username === user_data }" v-for="(entry, index) in leaderboard"
+                :key="index">
+              <span class="index">{{ index + 1 }}</span>
+              <span class="username">{{
+                  entry.username
+                }}</span>
+              <span class="score">Score: {{ entry.score }}</span>
+            </li>
+          </ol>
+        </div>
       </transition>
     </div>
     <button class="button-play" @click="click">
       <router-link to="/samurai-way" class="log"></router-link>
       <p>Play</p>
     </button>
-    <button class="action-button" @click="logout">Выйти из аккаунта</button>
+    <button class="action-button" @click="logout">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" height="5em" width="5em">
+        <path
+            d="M19 21H5a2 2 0 0 1-2-2v-4h2v4h14V5H5v4H3V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2Zm-8-5v-3H3v-2h8V8l5 4-5 4Z"
+            fill="white"/>
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -36,7 +49,7 @@ export default defineComponent({
     return {
       leaderboard: [],
       show: false,
-      user_data: '' as string,
+      user_data: '' as any,
       parallaxOffsetGround: 0 as number,
       parallaxOffsetLayer6: 0 as number,
       parallaxOffsetLayer5: 0 as number,
@@ -82,6 +95,7 @@ export default defineComponent({
       try {
         const response = await axios.get('http://127.0.0.1:8000/api/v1/score/leaderboard/');
         this.leaderboard = response.data;
+        this.user_data = localStorage.getItem('username');
       } catch (error) {
         console.error('Error fetching leaderboard:', error);
       }
@@ -168,14 +182,30 @@ export default defineComponent({
 }
 
 li {
-  width: 50%;
   padding: 1rem;
-  margin: 1rem;
-  border: 2px solid #000;
-  background-color: #efefef;
+  background-color: white;
   font-family: Poppins, sans-serif;
   font-weight: 700;
   letter-spacing: 1px;
+  border-radius: 15px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 1rem 10px 1rem 0;
+}
+
+.index {
+  flex-basis: 10%;
+}
+
+.username {
+  flex-basis: 60%;
+  text-align: center;
+}
+
+.score {
+  flex-basis: 20%;
+  text-align: right;
 }
 
 .cup {
@@ -204,9 +234,46 @@ li {
 }
 
 .action-button {
+  background-color: transparent;
   position: fixed;
   left: 93%;
   top: 5%;
   transform: translate(-50%, -10%);
+  width: 100px;
+  height: 100px;
+  text-decoration: none;
+  border: none;
+}
+
+.leaderboard-container {
+  max-height: 37vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  transition: background-color 0.3s ease-in-out;
+  padding-right: 0;
+}
+
+.leaderboard-container::-webkit-scrollbar {
+  width: 8px;
+  margin-left: 10px;
+  margin-top: 10px;
+}
+
+.leaderboard-container::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 10px;
+}
+
+.leaderboard-container::-webkit-scrollbar-track {
+  background-color: transparent;
+  margin: 1rem;
+}
+
+.cup-container {
+  width: 40vw;
+}
+
+.highlighted {
+  color: #ffad00;
 }
 </style>
