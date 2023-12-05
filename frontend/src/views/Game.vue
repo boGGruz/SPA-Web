@@ -5,7 +5,8 @@
         :class="{ 'night': isNightMode, 'evening': isEvening, 'day': isDay, 'morning': isMorning }"
         @keydown="handleKeyDown"
         tabindex="0"
-        :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
+        :style="{ backgroundPosition: `${Math.floor(parallaxOffsets['layer5'])}px 0, ${Math.floor(parallaxOffsets['layer3'])}px 0, ${Math.floor(parallaxOffsets['layer4'])}px 0, ${Math.floor(parallaxOffsets['layer2'])}px 0, 0 0` }"
+
     >
       <audio id="backgroundMusic" loop>
         <source src="@/assets/soundtrack.mp3" type="audio/mp3"/>
@@ -42,8 +43,8 @@
         ></div>
         <div class="ground" :style="{ backgroundPosition: `${Math.floor(parallaxOffsetGround)}px 0` }"></div>
       </div>
-      <div v-if="isGameOver" class="overlay"></div>
 
+      <div v-if="isGameOver" class="overlay"></div>
       <div v-if="isGameOver" class="game-over-screen">
         <h1 class="game-over__header">Game Over</h1>
         <h2 class="game-over__score">Score: {{ score }}</h2>
@@ -66,57 +67,39 @@ export default defineComponent({
     return {
       dinoBottom: 0 as number,
       dinoLeft: 20 as number,
-      isJumping: false as boolean,
       score: 0 as number,
       obstacles: [] as { bottom: number; left: number; obstacleImage: string; isNinja: boolean }[],
-      coef: 1 as number,
-      ninjaFrames: [
-        require('@/assets/enemy_run_1.png'),
-        require('@/assets/enemy_run_2.png'),
-        require('@/assets/enemy_run_3.png'),
-        require('@/assets/enemy_run_4.png'),
-        require('@/assets/enemy_run_5.png'),
-        require('@/assets/enemy_run_6.png'),
-        require('@/assets/enemy_run_7.png'),
-        require('@/assets/enemy_run_8.png'),
-      ],
-      characterFrames: [
-        require('@/assets/run_1.png'),
-        require('@/assets/run_2.png'),
-        require('@/assets/run_3.png'),
-        require('@/assets/run_4.png'),
-        require('@/assets/run_5.png'),
-        require('@/assets/run_6.png'),
-        require('@/assets/run_7.png'),
-        require('@/assets/run_8.png'),
-      ],
-      attackFrames: [
-        require('@/assets/attack_1.png'),
-        require('@/assets/attack_2.png'),
-        require('@/assets/attack_3.png'),
-      ],
-      isAttacking: false as boolean,
+      ninjaFrames: Array.from({length: 8}, (_, index) => require(`@/assets/enemy_run_${index + 1}.png`)),
+      characterFrames: Array.from({length: 8}, (_, index) => require(`@/assets/run_${index + 1}.png`)),
+      attackFrames: Array.from({length: 3}, (_, index) => require(`@/assets/attack_${index + 1}.png`)),
       attackFrameIndex: 0 as number,
       frameIndex: 0 as number,
       ninjaFrameIndex: 0 as number,
       parallaxOffsetGround: 0 as number,
-      parallaxOffsetLayer6: 0 as number,
-      parallaxOffsetLayer5: 0 as number,
-      parallaxOffsetLayer4: 0 as number,
-      parallaxOffsetLayer3: 0 as number,
-      parallaxOffsetLayer2: 0 as number,
-      parallaxLayer2Speed: 0.05 as number,
-      parallaxLayer3Speed: 1 as number,
-      parallaxLayer4Speed: 0.35 as number,
-      parallaxLayer5Speed: 0.5 as number,
-      parallaxLayer6Speed: 0.5 as number,
+      parallaxOffsets: {
+        layer6: 0,
+        layer5: 0,
+        layer4: 0,
+        layer3: 0,
+        layer2: 0,
+      },
+      parallaxLayerSpeeds: {
+        layer2: 0.05,
+        layer3: 1,
+        layer4: 0.35,
+        layer5: 0.5,
+        layer6: 0.5,
+      },
       isNightMode: false as boolean,
       isEvening: false as boolean,
       isMusic: true as boolean,
       isNinja: false as boolean,
       isDay: false as boolean,
       isMorning: false as boolean,
-      isGameOver: false as boolean
+      isGameOver: false as boolean,
+      isJumping: false as boolean,
+      isAttacking: false as boolean,
+      coef: 1 as number,
     };
   },
   methods: {
@@ -125,6 +108,7 @@ export default defineComponent({
       backgroundMusic.play();
       backgroundMusic.volume = 0.5;
     },
+
     animateCharacter() {
       setInterval(() => {
         if (!this.isJumping) {
@@ -132,11 +116,13 @@ export default defineComponent({
         }
       }, 100);
     },
+
     animateNinja() {
       setInterval(() => {
         this.ninjaFrameIndex = (this.ninjaFrameIndex + 1) % this.ninjaFrames.length;
       }, 100);
     },
+
     handleKeyDown(event: KeyboardEvent) {
       if (event.key === ' ' && !this.isJumping) {
         this.isJumping = true;
@@ -172,14 +158,12 @@ export default defineComponent({
         ) {
           this.obstacles.splice(i, 1);
           this.score += 3;
-          this.checkNightMode();
-          this.checkEvening();
-          this.checkDay();
-          this.checkMorning();
+          this.checkTimeOfDay()
           break;
         }
       }
     },
+
     animateAttack() {
       const attackInterval = setInterval(() => {
         this.attackFrameIndex = (this.attackFrameIndex + 1) % this.attackFrames.length;
@@ -190,6 +174,7 @@ export default defineComponent({
         this.isAttacking = false;
       }, this.attackFrames.length * 80);
     },
+
     jump() {
       const jumpHeight: number = 100;
       const jumpDuration: number = 500;
@@ -214,6 +199,7 @@ export default defineComponent({
 
       requestAnimationFrame(jumpAnimation);
     },
+
     moveObstacles() {
       const obstacleSpeed = 5 * this.coef;
       for (let i = 0; i < this.obstacles.length; i++) {
@@ -228,15 +214,11 @@ export default defineComponent({
         if (obstacle.left < -7) {
           this.obstacles.splice(i, 1);
           this.score++;
-          this.checkNightMode();
-          this.checkEvening();
-          this.checkDay();
-          this.checkMorning();
+          this.checkTimeOfDay()
         }
       }
       this.parallaxOffsetGround -= obstacleSpeed;
     },
-
 
     async checkCollisions() {
       const dino = {
@@ -296,54 +278,36 @@ export default defineComponent({
         this.checkCollisions();
       }
     },
-    checkMorning() {
-      if (this.score % 100 >= 0 && this.score % 100 < 25 && !this.isMorning) {
-        this.isMorning = true;
-      } else if (this.score % 100 >= 25) {
-        this.isMorning = false;
-      }
+
+    checkTimeOfDay() {
+      const timePercentage = this.score % 100;
+      this.isMorning = timePercentage >= 0 && timePercentage < 25;
+      this.isDay = timePercentage >= 25 && timePercentage < 50;
+      this.isEvening = timePercentage >= 50 && timePercentage < 75;
+      this.isNightMode = timePercentage >= 75 && timePercentage < 100;
     },
-    checkDay() {
-      if (this.score % 100 >= 25 && this.score % 100 < 50 && !this.isDay) {
-        this.isDay = true;
-      } else if (this.score % 100 >= 50) {
-        this.isDay = false;
-      }
-    },
-    checkEvening() {
-      if (this.score % 100 >= 50 && this.score % 100 < 75 && !this.isEvening) {
-        this.isEvening = true;
-      } else if (this.score % 100 >= 75) {
-        this.isEvening = false;
-      }
-    },
-    checkNightMode() {
-      if (this.score % 100 >= 75 && this.score % 100 < 100 && !this.isNightMode) {
-        this.isNightMode = true;
-      } else if (this.score % 100 < 75) {
-        this.isNightMode = false;
-      }
-    },
+
     startGame() {
       console.log('Игра начинается!');
     },
+
     parallaxAnimation() {
       setInterval(() => {
-        this.parallaxOffsetLayer3 -= this.parallaxLayer3Speed;
-        this.parallaxOffsetLayer4 += this.parallaxLayer4Speed;
-        this.parallaxOffsetLayer2 += this.parallaxLayer2Speed;
-        this.parallaxOffsetLayer5 -= this.parallaxLayer5Speed;
+        this.parallaxOffsets["layer3"] -= this.parallaxLayerSpeeds["layer3"];
+        this.parallaxOffsets["layer4"] += this.parallaxLayerSpeeds["layer4"];
+        this.parallaxOffsets["layer2"] += this.parallaxLayerSpeeds["layer2"];
+        this.parallaxOffsets["layer5"] -= this.parallaxLayerSpeeds["layer5"];
         const containerWidth = 1280;
-        if (this.parallaxOffsetLayer3 <= -containerWidth) {
-          this.parallaxOffsetLayer3 = 0;
+        if (this.parallaxOffsets["layer3"] <= -containerWidth) {
+          this.parallaxOffsets["layer3"] = 0;
         }
 
-        if (this.parallaxOffsetLayer4 <= -containerWidth) {
-          this.parallaxOffsetLayer4 = 0;
+        if (this.parallaxOffsets["layer4"] <= -containerWidth) {
+          this.parallaxOffsets["layer4"] = 0;
         }
 
-        if (this.parallaxOffsetLayer5 <= -containerWidth) {
-          this.parallaxOffsetLayer5 = 0;
+        if (this.parallaxOffsets["layer5"] <= -containerWidth) {
+          this.parallaxOffsets["layer5"] = 0;
         }
 
         if (this.parallaxOffsetGround <= -containerWidth) {
@@ -354,7 +318,6 @@ export default defineComponent({
   },
 
   mounted() {
-    this.playBackgroundMusic();
     this.$el.focus();
     const preloadImages = (imageUrls: string[], callback: () => void) => {
       let loadedImages = 0;
@@ -374,23 +337,12 @@ export default defineComponent({
     };
 
     preloadImages([
-      require('@/assets/Layer_5.png'),
-      require('@/assets/Layer_3.png'),
-      require('@/assets/Layer_4.png'),
-      require('@/assets/Layer_2_morning.png'),
-      require('@/assets/Layer_1_day.png'),
-      require('@/assets/Layer_5_night.png'),
-      require('@/assets/Layer_3_night.png'),
-      require('@/assets/Layer_4_night.png'),
-      require('@/assets/Layer_2_night.png'),
-      require('@/assets/Layer_1_night.png'),
-      require('@/assets/Layer_1_night.png'),
-      require('@/assets/Layer_5_sakura.png'),
-      require('@/assets/Layer_3_sakura.png'),
-      require('@/assets/Layer_4_sakura.png'),
-      require('@/assets/Layer_2_sakura.png'),
-      require('@/assets/Layer_1_sakura.png')
-    ], this.startGame);
+      'Layer_5', 'Layer_3', 'Layer_4',
+      'Layer_2_morning', 'Layer_1_day',
+      'Layer_5_night', 'Layer_3_night', 'Layer_4_night', 'Layer_2_night', 'Layer_1_night',
+      'Layer_5_sakura', 'Layer_3_sakura', 'Layer_4_sakura', 'Layer_2_sakura', 'Layer_1_sakura'
+    ].map(name => require(`@/assets/${name}.png`)), this.startGame);
+
     const addObstacle = () => {
       const isNinja = Math.random() < 0.15;
       const obstacleImage = isNinja ? this.ninjaFrames[this.ninjaFrameIndex] : require('@/assets/spike_1.png');
@@ -401,10 +353,10 @@ export default defineComponent({
         isNinja: isNinja,
       });
       this.coef += 0.05;
-      this.parallaxLayer3Speed += 0.01;
-      this.parallaxLayer2Speed += 0.01;
-      this.parallaxLayer4Speed += 0.01;
-      this.parallaxLayer5Speed += 0.01;
+      this.parallaxLayerSpeeds["layer3"] += 0.01;
+      this.parallaxLayerSpeeds["layer2"] += 0.01;
+      this.parallaxLayerSpeeds["layer4"] += 0.01;
+      this.parallaxLayerSpeeds["layer5"] += 0.01;
 
       setTimeout(addObstacle, (500 + Math.random() * 2000) + 0.05);
     };
@@ -413,8 +365,9 @@ export default defineComponent({
     this.animateCharacter();
     this.parallaxAnimation();
     this.animateNinja();
+    this.checkTimeOfDay()
+    this.playBackgroundMusic();
     window.addEventListener('keydown', this.handleKeyDown);
-    this.checkMorning();
   }
 })
 </script>
