@@ -1,55 +1,57 @@
 <template>
-  <div
-      class="main"
-      :class="{ 'night': isNightMode, 'evening': isEvening, 'day': isDay, 'morning': isMorning }"
-      @keydown="handleKeyDown"
-      tabindex="0"
-      :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
-  >
-    <audio id="backgroundMusic" loop>
-      <source src="@/assets/soundtrack.mp3" type="audio/mp3"/>
-      Your browser does not support the audio tag.
-    </audio>
+  <div class="game-wrapper">
+    <div
+        class="main"
+        :class="{ 'night': isNightMode, 'evening': isEvening, 'day': isDay, 'morning': isMorning }"
+        @keydown="handleKeyDown"
+        tabindex="0"
+        :style="{ backgroundPosition: `${Math.floor(parallaxOffsetLayer5)}px 0, ${Math.floor(parallaxOffsetLayer3)}px 0, ${Math.floor(parallaxOffsetLayer4)}px 0, ${Math.floor(parallaxOffsetLayer2)}px 0, 0 0` }"
+    >
+      <audio id="backgroundMusic" loop>
+        <source src="@/assets/soundtrack.mp3" type="audio/mp3"/>
+        Your browser does not support the audio tag.
+      </audio>
 
-    <h1 class="score">Очки: {{ score }}</h1>
-    <div class="guide">
-      <h1 class="guide-space">Прыжок: Пробел</h1>
-      <h1 class="guide-attack">Атака: Левый Ctrl</h1>
-    </div>
+      <h1 class="score">Очки: {{ score }}</h1>
+      <div class="guide">
+        <h1 class="guide-space">Прыжок: Пробел</h1>
+        <h1 class="guide-attack">Атака: Левый Ctrl</h1>
+      </div>
 
-    <div class="game-area">
-      <div
-          class="character"
-          :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${
-            isJumping
-            ? require('@/assets/run_6_clear.png')
-            : isAttacking
-            ? attackFrames[attackFrameIndex]
-            : characterFrames[frameIndex]
-          })`
-      }"
-      ></div>
-      <div
-          v-for="(obstacle, index) in obstacles"
-          :key="index"
-          class="obstacle"
-          :class="{ 'ninja': obstacle.isNinja }"
-          :style="{
-            bottom: `${obstacle.bottom}px`,
-            left: `${obstacle.left}px`,
-            backgroundImage: `url(${obstacle.obstacleImage})`}"
-      ></div>
-      <div class="ground" :style="{ backgroundPosition: `${Math.floor(parallaxOffsetGround)}px 0` }"></div>
-    </div>
-    <div v-if="isGameOver" class="overlay"></div>
+      <div class="game-area">
+        <div
+            class="character"
+            :style="{ bottom: `${dinoBottom}px`, left: `${dinoLeft}px`, backgroundImage: `url(${
+              isJumping
+              ? require('@/assets/run_6_clear.png')
+              : isAttacking
+              ? attackFrames[attackFrameIndex]
+              : characterFrames[frameIndex]
+            })`
+        }"
+        ></div>
+        <div
+            v-for="(obstacle, index) in obstacles"
+            :key="index"
+            class="obstacle"
+            :class="{ 'ninja': obstacle.isNinja }"
+            :style="{
+              bottom: `${obstacle.bottom}px`,
+              left: `${obstacle.left}px`,
+              backgroundImage: `url(${obstacle.obstacleImage})`}"
+        ></div>
+        <div class="ground" :style="{ backgroundPosition: `${Math.floor(parallaxOffsetGround)}px 0` }"></div>
+      </div>
+      <div v-if="isGameOver" class="overlay"></div>
 
-    <div v-if="isGameOver" class="game-over-screen">
-      <h1 class="game-over__header">Game Over</h1>
-      <h2 class="game-over__score">Score: {{ score }}</h2>
-      <button @click="resetGame" class="game-over__button">Restart</button>
-      <router-link class="game-over_router-link" to="/screen-play">
-        <button class="game-over__button-menu">Back to menu</button>
-      </router-link>
+      <div v-if="isGameOver" class="game-over-screen">
+        <h1 class="game-over__header">Game Over</h1>
+        <h2 class="game-over__score">Score: {{ score }}</h2>
+        <button @click="resetGame" class="game-over__button">Restart</button>
+        <router-link class="game-over_router-link" to="/screen-play">
+          <button class="game-over__button-menu">Back to menu</button>
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -423,11 +425,24 @@ export default defineComponent({
   padding: 0;
 }
 
-.main {
+.game-wrapper {
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('../assets/bg-grad.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.main {
+  width: 1280px;
+  height: 700px;
   position: fixed;
-  background-repeat: repeat;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-size: cover;
   transition: background-image 2s ease;
 }
